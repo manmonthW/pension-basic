@@ -13,7 +13,7 @@
 
 ## 在线访问
 
-🌐 **GitHub Pages部署**: [点击访问在线版本](https://your-username.github.io/pension-basic/)
+🌐 **GitHub Pages部署**: [点击访问在线版本](https://manmonthW.github.io/pension-basic/)
 
 ## 快速开始
 
@@ -256,7 +256,7 @@ git add .
 git commit -m "Initial commit"
 
 # 连接到GitHub远程仓库
-git remote add origin https://github.com/your-username/pension-basic.git
+git remote add origin https://github.com/manmonthW/pension-basic.git
 git branch -M main
 git push -u origin main
 ```
@@ -269,7 +269,7 @@ git push -u origin main
 4. 点击 Save
 
 等待几分钟后，您的应用将部署在：
-`https://your-username.github.io/pension-basic/`
+`https://manmonthW.github.io/pension-basic/`
 
 ### 3. 更新应用
 
