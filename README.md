@@ -11,14 +11,23 @@
 3. **预估养老金** - 准确计算退休后每月养老金
 4. **投资回报分析** - 计算回本时间，帮助做出最优决策
 
+## 在线访问
+
+🌐 **GitHub Pages部署**: [点击访问在线版本](https://your-username.github.io/pension-basic/)
+
 ## 快速开始
 
-### 方式1：浏览器直接打开（推荐）
+### 方式1：在线使用（推荐）
 
-1. 双击打开 `index.html` 文件
-2. 在浏览器中使用计算器
+直接访问GitHub Pages部署的在线版本，无需下载安装。
 
-### 方式2：本地服务器运行
+### 方式2：浏览器直接打开
+
+1. 下载或克隆本仓库
+2. 双击打开 `index.html` 文件
+3. 在浏览器中使用计算器
+
+### 方式3：本地服务器运行
 
 ```bash
 # 使用Python启动本地服务器
@@ -30,7 +39,7 @@ npx http-server
 
 然后在浏览器访问 `http://localhost:8000`
 
-### 方式3：Node.js测试
+### 方式4：Node.js测试
 
 ```bash
 # 安装Node.js后运行测试
@@ -77,9 +86,9 @@ node test.js
 | 社平工资 | 12,049元 |
 | 缴费基数下限 | 7,162元（60%） |
 | 缴费基数上限 | 35,811元（300%） |
-| 个人缴费比例 | 8% |
-| 单位缴费比例 | 16% |
-| 个人账户年利率 | 4% |
+| 灵活就业总缴费 | 20% |
+| 计入个人账户 | 8% |
+| 个人账户年利率 | 1.5% |
 
 ### 退休年龄规则
 
@@ -234,6 +243,49 @@ node test.js
 
 ---
 
+## 部署到GitHub Pages
+
+### 1. 创建GitHub仓库
+
+在GitHub上创建新仓库，然后执行以下命令：
+
+```bash
+# 如果是新仓库，先初始化（已完成可跳过）
+git init
+git add .
+git commit -m "Initial commit"
+
+# 连接到GitHub远程仓库
+git remote add origin https://github.com/your-username/pension-basic.git
+git branch -M main
+git push -u origin main
+```
+
+### 2. 配置GitHub Pages
+
+1. 进入仓库的 Settings → Pages
+2. Source 选择 "Deploy from a branch"
+3. Branch 选择 "main" 分支，目录选择 "/ (root)"
+4. 点击 Save
+
+等待几分钟后，您的应用将部署在：
+`https://your-username.github.io/pension-basic/`
+
+### 3. 更新应用
+
+每次修改后，只需提交并推送：
+
+```bash
+git add .
+git commit -m "描述您的更改"
+git push
+```
+
+GitHub Pages会自动重新部署。
+
+---
+
 **最后更新：2025年12月**
 **版本：v1.0**
 **适用城市：北京**
+**适用人群：灵活就业人员**
