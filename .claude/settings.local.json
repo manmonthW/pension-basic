@@ -6,7 +6,14 @@
       "Bash(python -m http.server:*)",
       "Bash(ls:*)",
       "Bash(git init:*)",
-      "Bash(git add:*)"
+      "Bash(git add:*)",
+      "Bash(git commit -m \"$(cat <<''EOF''\nInitial commit: 养老金缴费基数计算器\n\n灵活就业人员养老保险缴费方案智能对比分析系统\n\n功能特性：\n- 支持北京地区养老金计算\n- 四档缴费方案对比（60%/100%/200%/300%）\n- 退休年龄自动查询\n- 养老金详细计算（基础养老金+个人账户养老金）\n- 方案回本时间分析\n- 可视化数据展示（柱状图、饼图）\n- 详细公式说明\n\n技术栈：\n- 纯前端实现（HTML/CSS/JavaScript）\n- 响应式设计\n- 玻璃态UI设计\n\n🤖 Generated with [Claude Code](https://claude.com/claude-code)\n\nCo-Authored-By: Claude <noreply@anthropic.com>\nEOF\n)\")",
+      "Bash(gh --version:*)",
+      "Bash(git commit:*)",
+      "Bash(git remote add:*)",
+      "Bash(git branch:*)",
+      "Bash(git push:*)",
+      "Bash(chmod:*)"
     ],
     "deny": [],
     "ask": []
