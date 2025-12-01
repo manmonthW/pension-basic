@@ -1,0 +1,448 @@
+
+
+## 一、功能目标（给开发看的业务描述）
+
+对象：
+刚刚失业，但还想继续在**职工养老保险**体系内按自己选的缴费基数继续缴费的人。
+目前只支持北京，留好扩展口，后续增加其它城市数据。
+要解决的问题：
+在当前规则下，用户可选 4 档缴费基数（如 60%/80%/100%/300% 社平工资等，具体数值通过参数给定）。
+根据用户的出生年月，计算**距离退休还有多少个月**，在此期间按不同缴费基数继续缴费，估算：
+
+* 未来多交的养老保险总额（尤其是“个人掏的那部分”）
+* 退休后每月能多领多少养老金
+* 四档方案对比：哪档更“划算”（如：回本时间、实际收益率等）
+首先第一个功能实现查询新规下准确的退休年龄
+在选择了人员类型和出生年月之后，提供一个按钮，预估退休年龄，通过下表查询返回结果，注意格式转换比如用户选择的出生年月是1965-01对应的下表就是196501
+请根据以下三份数据表进行区间匹配，查找196501在哪个区间，对应的后面的退休年龄是6001；然后返回对应退休年龄60岁在他出生的月份上+1个月：
+
+① 男职工法定退休年龄（区间表）
+
+196501-196504:6001,196505-196508:6002,196509-196512:6003,196801-196804:6010,196901-196904:6101,197001-197004:6104,197101-197104:6107,197201-197204:6110,197301-197304:6201,197401-197404:6204,197501-197504:6207,197601-197612:6300
+
+特别规则：
+
+出生日期早于 1965 → 显示“已退休”
+
+男职工出生 1977 年及之后 → 统一退休年龄 63 岁（6300）
+
+② 女干部法定退休年龄（区间表）
+
+197001-197004:5501,197005-197008:5502,197009-197012:5503,197301-197304:5510,197401-197404:5601,197501-197504:5604,197601-197604:5607,197701-197704:5610,197801-197804:5701,197901-197904:5704,198001-198004:5707,198101-198112:5800
+
+特别规则：
+
+出生日期早于 1970 → 显示“已退休”
+
+女干部出生 1982 年及之后 → 统一退休年龄 58 岁（5800）
+
+③ 女工人法定退休年龄（区间表）
+
+197501-197502:5001,197503-197504:5002,197601-197602:5007,197701-197702:5101,197801-197802:5107,197901-197902:5201,198001-198002:5207,198101-198102:5301,198201-198202:5307,198301-198302:5401,198401-198412:5500
+
+特别规则：
+
+出生日期早于 1975 → 显示“已退休”
+
+女工人出生 1984 年及之后 → 统一退休年龄 55 岁（5500）
+
+最终返回的预估退休年龄格式为 xx岁x月，比如表中查到的是6001；退休年龄就是60岁在他出生的月份上+1个月时间退休，如果0月直接显示xx岁，出生日期早于1965年的直接显示已退休。男职工出生日期1977年及之后统一退休年龄63岁，女干部晚于1982年及之后的退休年龄58岁；女工人晚于1984年及之后的退休年龄55岁；
+---
+
+## 二、整体计算思路
+
+养老金采用国家通用公式（北京也大致如此）：
+
+> 退休后月养老金 = 基础养老金 + 个人账户养老金
+
+其中：
+
+* **个人账户养老金** = 个人账户累积金额 ÷ 计发月数 N
+* **基础养老金** = ( 全市上年在岗职工月平均工资 + 本人指数化月平均缴费工资 ) ÷ 2 × 计发比例
+
+计发比例通常 = 累计缴费年限 × 某个比例（约 1%/年，具体用参数）
+
+你的功能只需要在“已有历史缴费”的基础上，**叠加未来从现在到退休这段的缴费**，比较不同缴费基数的效果差异。
+
+---
+
+## 三、输入 / 输出设计
+
+### 1. 输入参数（Input）
+
+```ts
+interface PensionInput {
+  // 用户基本信息
+  gender: 'male' | 'female';
+  personType: 'male_worker' | 'male_cadre' | 'female_worker' | 'female_cadre';
+  birthYear: number;      // 出生年
+  birthMonth: number;     // 出生月 (1-12)
+  currentYear: number;    // 当前年
+  currentMonth: number;   // 当前月 (1-12)
+
+  // 历史缴费信息（用户到目前为止已经有的）
+  histPaidMonths: number;         // 历史累计缴费月数（含视同，按月）
+  histAvgIndex: number;           // 历史平均缴费指数（本人缴费工资 / 当年社平工资 的平均值）
+  histPersonalAccount: number;    // 当前个人账户余额（元），如果没有就设为 0 或估值
+
+  // 城市 & 制度参数（北京当前年度数据，全部作为可配置参数）
+  cityName: 'Beijing';
+  lastYearAvgWage: number;        // 上年度全市在岗职工月平均工资（元）
+  payBaseOptions: number[];       // 4 档缴费基数（月度），长度 = 4，例如 [0.6*avg, 0.8*avg, 1.0*avg, 3.0*avg]
+  personalRate: number;           // 个人缴费比例（如 0.08 = 8%）
+  employerRate: number;           // 单位缴费比例（若个人自己缴只算个人的，这里可设为0或单独字段）
+  personalToAccountRate: number;  // 每月缴费中记入个人账户的比例（通常接近 personalRate）
+  basicAccrualRate: number;       // 基础养老金计发比例/年（如 0.01 = 1%）
+  accountInterestRate: number;    // 个人账户年记账利率（如 0.03），可用长期平均或 0 近似
+  wageGrowthRate: number;         // 城市工资年度增长率预估（用于未来社平工资和指数化）
+
+  // 退休年龄规则 & 计发月数规则（可以通过已有函数或配置表给出）
+  getStatutoryRetirementAge: (birthYear: number, birthMonth: number, gender: string, personType: string) => {
+    retireYear: number;
+    retireMonth: number;
+  };
+  getNFromTable: (retireAgeYears: number) => number;   // 根据退休年龄查询计发月数 N
+
+  // 其他可选配置
+  futurePayYearsLimit?: number; // 用户最多愿意继续缴费多少年（比如 15 年），可选
+}
+```
+
+### 2. 输出结果（Output）
+
+```ts
+interface PlanResult {
+  planId: number;                      // 1~4
+  monthlyBase: number;                 // 每月缴费基数
+  monthsToRetire: number;              // 剩余缴费月数
+  personalPayPerMonth: number;         // 每月个人实缴金额
+  totalPersonalPay: number;            // 从现在到退休个人总缴费
+
+  finalPersonalAccount: number;        // 退休时个人账户余额（含历史+未来+利息）
+  finalAvgIndex: number;               // 最终指数化平均缴费指数
+  totalPaidYears: number;              // 最终累计缴费年限（含历史+未来）
+
+  monthlyPension: number;              // 预计退休月养老金（基础+个人账户）
+  basicPensionPart: number;            // 基础养老金部分
+  accountPensionPart: number;          // 个人账户养老金部分
+
+  // 相对最低档基准方案（方案1）的比较结果，开发时可后处理填充
+  deltaPersonalPayVsPlan1?: number;    // 相比方案1，多缴的个人总金额
+  deltaMonthlyPensionVsPlan1?: number; // 相比方案1，多领的月养老金
+  paybackMonthsVsPlan1?: number;       // 多缴 / 每月多领 = 回本月数
+}
+
+interface PensionOutput {
+  basePlanIndex: number;       // 作为基准的方案（通常是最低档）
+  plans: PlanResult[];         // 4 个方案结果
+  bestByPayback: PlanResult;   // 回本期最合适的方案
+  bestByPension: PlanResult;   // 月养老金最高的方案
+}
+```
+
+---
+
+## 四、核心算法步骤
+
+### Step 0：预处理 & 通用函数
+
+```ts
+function monthsBetween(year1, month1, year2, month2): number {
+  return (year2 - year1) * 12 + (month2 - month1);
+}
+
+function yearsFromMonths(months: number): number {
+  return months / 12;
+}
+```
+
+### Step 1：计算法定退休时间 & 剩余缴费月数
+
+```ts
+const { retireYear, retireMonth } = input.getStatutoryRetirementAge(
+  input.birthYear,
+  input.birthMonth,
+  input.gender,
+  input.personType
+);
+
+const monthsToRetire = monthsBetween(
+  input.currentYear, input.currentMonth,
+  retireYear, retireMonth
+);
+```
+
+若有用户自定义“最多缴费几年”的限制，可以：
+
+```ts
+const maxMonthsByUser = (input.futurePayYearsLimit ?? 100) * 12;
+const effectiveMonthsToPay = Math.min(monthsToRetire, maxMonthsByUser);
+```
+
+下面统一用 `M = effectiveMonthsToPay`。
+
+---
+
+### Step 2：未来社平工资和缴费指数的估算（略复杂，可简化为两种模式）
+
+#### 模式 A：简单近似（建议首版直接用）
+
+假设从现在到退休，**社平工资和个人缴费基数等比例增长**，即：缴费指数 ≈ 固定值：
+
+* 某方案 i：
+  `index_i ≈ monthlyBase_i / lastYearAvgWage`
+
+则新缴费月数为 `M`，新部分平均指数就是 `index_i`。
+
+最终总指数（历史 +未来）：
+
+```ts
+const totalMonths = input.histPaidMonths + M;
+const finalAvgIndex_i = (input.histAvgIndex * input.histPaidMonths + index_i * M) / totalMonths;
+```
+
+> 这是一个非常实用、容易实现的近似：不需要逐年循环。
+
+#### 模式 B：逐年模拟（如果后续要做精细版，再加）
+
+每年更新社平工资、基数、个人账户利率等，用循环按月或按年累加。算法结构类似，略。
+
+---
+
+### Step 3：个人账户余额推演
+
+假设：
+
+* 个人账户每月记账 = `monthlyBase * personalToAccountRate`
+* 利息按年计算、按月均匀近似（简单版本）
+
+#### 简单近似公式（不按利息细算）
+
+首版可以忽略利息或用简单平均：
+
+```ts
+// 新增个人账户金额（不计利息）
+addedAccount_i = monthlyBase_i * personalToAccountRate * M;
+
+// 退休时个人账户余额
+finalPersonalAccount_i = input.histPersonalAccount + addedAccount_i;
+```
+
+如果希望考虑利息，可假设“平均存款时间 = M/2 月”，则利息：
+
+```ts
+// 约等于半年利息，简化
+interestFactor = 1 + input.accountInterestRate * (yearsFromMonths(M) / 2);
+finalPersonalAccount_i = (input.histPersonalAccount + addedAccount_i) * interestFactor;
+```
+
+---
+
+### Step 4：最终缴费年限
+
+```ts
+finalPaidMonths_i = input.histPaidMonths + M;
+finalPaidYears_i = yearsFromMonths(finalPaidMonths_i);
+```
+
+---
+
+### Step 5：计算计发月数 N
+
+```ts
+// 退休年龄（精确到年，可用 (retireYear - birthYear) 并按月做一点修正）
+const retireAgeYears = (retireYear - input.birthYear) + (retireMonth - input.birthMonth) / 12;
+const N = input.getNFromTable(Math.round(retireAgeYears));
+```
+
+> 你现在脚本中已经有 N_TABLE，这里直接复用。
+
+---
+
+### Step 6：估算退休后月养老金
+
+#### 6.1 个人账户养老金部分
+
+```ts
+accountPension_i = finalPersonalAccount_i / N;
+```
+
+#### 6.2 基础养老金部分
+
+基础养老金公式（参数化）：
+
+```ts
+// 指数化月平均缴费工资 = 最终缴费指数 × 上年度社平工资
+indexedAvgWage_i = finalAvgIndex_i * input.lastYearAvgWage;
+
+// 累计计发比例 = 最终缴费年限 × basicAccrualRate
+accrual_i = finalPaidYears_i * input.basicAccrualRate;
+
+// 基础养老金
+basicPension_i = (input.lastYearAvgWage + indexedAvgWage_i) / 2 * accrual_i;
+```
+
+> 注意：这里用的是“上年度社平工资 + 本人指数化平均缴费工资 的平均值 × 计发比例”，basicAccrualRate 一般由你在参数里设置为 1% 等。
+
+#### 6.3 总养老金
+
+```ts
+monthlyPension_i = basicPension_i + accountPension_i;
+```
+
+---
+
+### Step 7：个人实际缴费金额
+
+这里重点展示**个人掏的钱**，单位缴费可以单独展示或合计。
+
+```ts
+personalPayPerMonth_i = monthlyBase_i * input.personalRate;
+totalPersonalPay_i = personalPayPerMonth_i * M;
+
+// 若需要合计“总缴费”
+totalContributionPerMonth_i = monthlyBase_i * (input.personalRate + input.employerRate);
+totalContribution_i = totalContributionPerMonth_i * M;
+```
+
+---
+
+### Step 8：与最低档方案对比（用户最关心）
+
+假设方案 1 是最低档，做差分：
+
+```ts
+const basePlan = planResults[0]; // 按 payBaseOptions 排序从小到大
+
+for each plan_i:
+  deltaPersonalPay = plan_i.totalPersonalPay - basePlan.totalPersonalPay;
+  deltaMonthlyPension = plan_i.monthlyPension - basePlan.monthlyPension;
+
+  if deltaMonthlyPension > 0:
+    paybackMonths = deltaPersonalPay / deltaMonthlyPension;
+  else:
+    paybackMonths = Infinity; // 多交但不多领或少领（理论上不应出现）
+```
+
+> 这三个数字是用户极度关心的：
+>
+> * **多交了多少钱**
+> * **每月多领多少钱**
+> * **大约多少个月回本**
+
+---
+
+## 五、伪代码总流程（可直接丢给 AI 生成 JS/TS）
+
+```ts
+function simulatePensionPlans(input: PensionInput): PensionOutput {
+  const { retireYear, retireMonth } = input.getStatutoryRetirementAge(
+    input.birthYear, input.birthMonth, input.gender, input.personType
+  );
+
+  const monthsToRetire = monthsBetween(
+    input.currentYear, input.currentMonth,
+    retireYear, retireMonth
+  );
+
+  const maxMonthsByUser = (input.futurePayYearsLimit ?? 100) * 12;
+  const M = Math.min(monthsToRetire, maxMonthsByUser);
+
+  const retireAgeYears = (retireYear - input.birthYear) + (retireMonth - input.birthMonth) / 12;
+  const N = input.getNFromTable(Math.round(retireAgeYears));
+
+  const plans: PlanResult[] = [];
+
+  for (let idx = 0; idx < input.payBaseOptions.length; idx++) {
+    const monthlyBase = input.payBaseOptions[idx];
+
+    // 1) 新增缴费指数 & 最终指数
+    const index_i = monthlyBase / input.lastYearAvgWage;
+    const totalMonths = input.histPaidMonths + M;
+    const finalAvgIndex = (input.histAvgIndex * input.histPaidMonths + index_i * M) / totalMonths;
+
+    // 2) 个人账户余额
+    const addedAccount = monthlyBase * input.personalToAccountRate * M;
+    const interestFactor = 1 + input.accountInterestRate * (yearsFromMonths(M) / 2);
+    const finalPersonalAccount = (input.histPersonalAccount + addedAccount) * interestFactor;
+
+    // 3) 最终缴费年限
+    const finalPaidMonths = input.histPaidMonths + M;
+    const totalPaidYears = yearsFromMonths(finalPaidMonths);
+
+    // 4) 养老金计算
+    const indexedAvgWage = finalAvgIndex * input.lastYearAvgWage;
+    const accrual = totalPaidYears * input.basicAccrualRate;
+    const basicPension = (input.lastYearAvgWage + indexedAvgWage) / 2 * accrual;
+    const accountPension = finalPersonalAccount / N;
+    const monthlyPension = basicPension + accountPension;
+
+    // 5) 个人缴费
+    const personalPayPerMonth = monthlyBase * input.personalRate;
+    const totalPersonalPay = personalPayPerMonth * M;
+
+    plans.push({
+      planId: idx + 1,
+      monthlyBase,
+      monthsToRetire: M,
+      personalPayPerMonth,
+      totalPersonalPay,
+      finalPersonalAccount,
+      finalAvgIndex,
+      totalPaidYears,
+      monthlyPension,
+      basicPensionPart: basicPension,
+      accountPensionPart: accountPension,
+    });
+  }
+
+  // 6) 相对最低档方案做差分
+  const basePlan = plans[0];
+
+  for (const p of plans) {
+    p.deltaPersonalPayVsPlan1 = p.totalPersonalPay - basePlan.totalPersonalPay;
+    p.deltaMonthlyPensionVsPlan1 = p.monthlyPension - basePlan.monthlyPension;
+    if (p.deltaMonthlyPensionVsPlan1 > 0) {
+      p.paybackMonthsVsPlan1 = p.deltaPersonalPayVsPlan1 / p.deltaMonthlyPensionVsPlan1;
+    } else {
+      p.paybackMonthsVsPlan1 = Infinity;
+    }
+  }
+
+  // 7) 找出推荐方案
+  const bestByPayback = plans
+    .filter(p => p.paybackMonthsVsPlan1 && p.paybackMonthsVsPlan1 !== Infinity)
+    .sort((a, b) => (a.paybackMonthsVsPlan1! - b.paybackMonthsVsPlan1!))[0] ?? plans[0];
+
+  const bestByPension = plans
+    .slice()
+    .sort((a, b) => b.monthlyPension - a.monthlyPension)[0];
+
+  return {
+    basePlanIndex: 1,
+    plans,
+    bestByPayback,
+    bestByPension,
+  };
+}
+```
+
+---
+
+## 六、页面展示建议（“用户最关心的内容”）
+
+每个方案卡片建议展示：
+
+* 档位名称：如「低档 / 中档 / 高档 / 封顶」
+* 每月缴费基数：XXXX 元
+* 每月个人要交：XXXX 元
+* 剩余缴费时间：XX 年 XX 个月
+* 预计退休月养老金：XXXX 元
+
+  * 其中基础养老金：XXX 元
+  * 个人账户部分：XXX 元
+* 相比最低档：
+
+  * 多交：XXXX 元
+  * 每月多领：XXX 元
+  * 大约回本时间：XX 年 XX 个月

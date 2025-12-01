@@ -1,0 +1,158 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>养老金最优解计算器</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>养老金缴费基数计算器</h1>
+            <p class="subtitle">灵活就业人员养老保险缴费方案智能对比分析系统</p>
+            <p class="subtitle" style="font-size: 0.9em; margin-top: 8px; opacity: 0.9;">适用对象：失业后继续缴纳职工养老保险的灵活就业人员</p>
+        </header>
+
+        <div class="card">
+            <h2>基本信息</h2>
+            <form id="pensionForm">
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="citySelect">选择城市</label>
+                        <select id="citySelect" required>
+                            <option value="北京">北京</option>
+                        </select>
+                        <small>更多城市即将上线</small>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="personType">人员类型</label>
+                        <select id="personType" required>
+                            <option value="">请选择</option>
+                            <option value="male_worker">男职工</option>
+                            <option value="female_cadre">女干部</option>
+                            <option value="female_worker">女工人</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="birthYear">出生年份</label>
+                        <input type="number" id="birthYear" min="1960" max="2010" placeholder="1990" required>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="birthMonth">出生月份</label>
+                        <select id="birthMonth" required>
+                            <option value="">请选择</option>
+                            <option value="1">1月</option>
+                            <option value="2">2月</option>
+                            <option value="3">3月</option>
+                            <option value="4">4月</option>
+                            <option value="5">5月</option>
+                            <option value="6">6月</option>
+                            <option value="7">7月</option>
+                            <option value="8">8月</option>
+                            <option value="9">9月</option>
+                            <option value="10">10月</option>
+                            <option value="11">11月</option>
+                            <option value="12">12月</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="button-group">
+                    <button type="button" id="checkRetirementBtn" class="btn btn-secondary">
+                        查询退休年龄
+                    </button>
+                </div>
+
+                <div id="retirementResult" class="result-box" style="display: none;">
+                    <h3>预估退休年龄</h3>
+                    <div id="retirementInfo"></div>
+                </div>
+
+                <hr>
+
+                <h2>历史缴费信息</h2>
+
+                <div class="result-box" style="background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%); border-color: #fbbf24; margin-bottom: 20px;">
+                    <h3 style="color: #92400e; font-size: 1.1em;">💡 缴费说明</h3>
+                    <p style="color: #78350f; margin: 8px 0; font-weight: 500;">
+                        <strong>灵活就业人员缴费标准：</strong><br>
+                        • 个人承担全部费用，缴费比例为 <strong>20%</strong><br>
+                        • 其中 <strong>8%</strong> 计入个人账户<br>
+                        • 其余 <strong>12%</strong> 进入统筹账户<br>
+                        • 本系统自动按此标准计算
+                    </p>
+                </div>
+
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="histPaidMonths">已累计缴费月数</label>
+                        <input type="number" id="histPaidMonths" min="0" placeholder="120" required>
+                        <small>含视同缴费年限，按月计算</small>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="histAvgIndex">历史平均缴费指数</label>
+                        <input type="number" id="histAvgIndex" min="0" max="3" step="0.01" placeholder="1.0" required>
+                        <small>通常在0.6-3.0之间，不清楚填1.0</small>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="histPersonalAccount">个人账户余额（元）</label>
+                        <input type="number" id="histPersonalAccount" min="0" step="0.01" placeholder="50000" required>
+                        <small>当前个人账户累积金额</small>
+                    </div>
+                </div>
+
+                <div class="button-group">
+                    <button type="submit" class="btn btn-primary">
+                        计算养老金方案
+                    </button>
+                    <button type="reset" class="btn btn-secondary">
+                        重置
+                    </button>
+                </div>
+            </form>
+        </div>
+
+        <div id="resultsSection" style="display: none;">
+            <div class="card">
+                <h2>退休信息</h2>
+                <div id="retireInfoDisplay" class="info-grid"></div>
+            </div>
+
+            <div class="card">
+                <h2>四档缴费方案对比</h2>
+                <div id="plansComparison" class="plans-grid"></div>
+            </div>
+
+            <div class="card">
+                <h2>方案推荐</h2>
+                <div id="recommendations" class="recommendations-grid"></div>
+            </div>
+
+            <div class="card">
+                <h2>📊 方案数据汇总</h2>
+                <div id="summarySection"></div>
+            </div>
+
+            <div class="card">
+                <h2>💡 养老金计算公式说明</h2>
+                <div id="formulaSection"></div>
+            </div>
+        </div>
+
+        <footer>
+            <p>数据来源：北京市人力资源和社会保障局 2025年公布数据</p>
+            <p class="disclaimer">⚠️ 本计算结果仅供参考，实际养老金以社保部门核定为准</p>
+            <p style="margin-top: 12px; font-size: 0.85em;">适用人群：灵活就业人员（个人缴费20%）</p>
+        </footer>
+    </div>
+
+    <script src="app.js"></script>
+    <script src="main.js"></script>
+</body>
+</html>
