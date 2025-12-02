@@ -1,0 +1,167 @@
+<!--pages/result/result.wxml-->
+<view class="container">
+  <!-- 退休信息 -->
+  <view class="card">
+    <view class="card-title">退休信息</view>
+    <view class="info-grid">
+      <view class="info-item">
+        <view class="info-label">退休年龄</view>
+        <view class="info-value">{{result.retireInfo.displayAge}}</view>
+      </view>
+      <view class="info-item">
+        <view class="info-label">退休时间</view>
+        <view class="info-value">{{result.retireInfo.retireYear}}年{{result.retireInfo.retireMonth}}月</view>
+      </view>
+      <view class="info-item">
+        <view class="info-label">剩余缴费</view>
+        <view class="info-value">{{formatMonths(result.retireInfo.monthsToRetire)}}</view>
+      </view>
+      <view class="info-item">
+        <view class="info-label">计发月数(N)</view>
+        <view class="info-value">{{result.retireInfo.N}}个月</view>
+      </view>
+    </view>
+  </view>
+
+  <!-- 四档方案对比 -->
+  <view class="card">
+    <view class="card-title">四档缴费方案对比</view>
+    <view class="plans-container">
+      <view wx:for="{{result.plans}}" wx:key="planId" class="plan-card plan-{{item.planId}}">
+        <view class="plan-header">
+          <view class="plan-name">{{planNames[index]}}</view>
+          <view class="plan-badge" wx:if="{{item.planId === result.basePlanIndex}}">推荐</view>
+        </view>
+
+        <view class="plan-main">
+          <view class="plan-pension">
+            <text class="pension-amount">{{formatMoney(item.monthlyPension)}}</text>
+            <text class="pension-unit">元/月</text>
+          </view>
+        </view>
+
+        <view class="plan-details">
+          <view class="detail-row">
+            <text class="detail-label">缴费基数</text>
+            <text class="detail-value">{{formatMoney(item.monthlyBase)}}元</text>
+          </view>
+          <view class="detail-row">
+            <text class="detail-label">月缴费(20%)</text>
+            <text class="detail-value">{{formatMoney(item.personalPayPerMonth)}}元</text>
+          </view>
+          <view class="detail-row">
+            <text class="detail-label">总缴费</text>
+            <text class="detail-value">{{formatMoney(item.totalPersonalPay)}}元</text>
+          </view>
+          <view class="detail-row">
+            <text class="detail-label">账户余额</text>
+            <text class="detail-value">{{formatMoney(item.finalPersonalAccount)}}元</text>
+          </view>
+          <view class="detail-divider"></view>
+          <view class="detail-row highlight">
+            <text class="detail-label">基础养老金</text>
+            <text class="detail-value">{{formatMoney(item.basicPensionPart)}}元</text>
+          </view>
+          <view class="detail-row highlight">
+            <text class="detail-label">个人账户</text>
+            <text class="detail-value">{{formatMoney(item.accountPensionPart)}}元</text>
+          </view>
+
+          <view wx:if="{{item.planId > 1}}" class="compare-section">
+            <view class="detail-divider"></view>
+            <view class="detail-row compare">
+              <text class="detail-label">比基础档多缴</text>
+              <text class="detail-value negative">+{{formatMoney(item.deltaPersonalPayVsPlan1)}}元</text>
+            </view>
+            <view class="detail-row compare">
+              <text class="detail-label">每月多领</text>
+              <text class="detail-value positive">+{{formatMoney(item.deltaMonthlyPensionVsPlan1)}}元</text>
+            </view>
+            <view class="detail-row compare">
+              <text class="detail-label">回本时间</text>
+              <text class="detail-value">{{formatMonths(Math.ceil(item.paybackMonthsVsPlan1))}}</text>
+            </view>
+          </view>
+        </view>
+      </view>
+    </view>
+  </view>
+
+  <!-- 方案推荐 -->
+  <view class="card">
+    <view class="card-title">方案推荐</view>
+    <view class="recommendations">
+      <view class="rec-card">
+        <view class="rec-icon">⚡</view>
+        <view class="rec-title">回本最快方案</view>
+        <view class="rec-value">{{planNames[result.bestByPayback.planId - 1]}}</view>
+        <view class="rec-desc">月养老金: {{formatMoney(result.bestByPayback.monthlyPension)}}元</view>
+      </view>
+
+      <view class="rec-card">
+        <view class="rec-icon">💰</view>
+        <view class="rec-title">养老金最高方案</view>
+        <view class="rec-value">{{planNames[result.bestByPension.planId - 1]}}</view>
+        <view class="rec-desc">月养老金: {{formatMoney(result.bestByPension.monthlyPension)}}元</view>
+      </view>
+    </view>
+  </view>
+
+  <!-- 养老金计算公式 -->
+  <view class="card">
+    <view class="card-title">💡 养老金计算公式说明</view>
+
+    <view class="formula-section">
+      <view class="formula-title">总公式</view>
+      <view class="formula-box">
+        月养老金 = 基础养老金 + 个人账户养老金
+      </view>
+    </view>
+
+    <view class="formula-section">
+      <view class="formula-title">1️⃣ 基础养老金</view>
+      <view class="formula-box">
+        基础养老金 = (社平工资 + 本人指数化工资) ÷ 2 × 缴费年限 × 1%
+      </view>
+      <view class="formula-notes">
+        • 社平工资 = 12,049元（北京2025年标准）\n
+        • 本人指数化工资 = 平均缴费指数 × 社平工资\n
+        • 缴费年限 = 累计缴费月数 ÷ 12
+      </view>
+    </view>
+
+    <view class="formula-section">
+      <view class="formula-title">2️⃣ 个人账户养老金</view>
+      <view class="formula-box">
+        个人账户养老金 = 退休时个人账户余额 ÷ 计发月数(N)
+      </view>
+      <view class="formula-notes">
+        • 个人账户余额 = 历史余额 + 未来缴费×8% + 利息\n
+        • 计发月数(N) = {{result.retireInfo.N}}个月（{{result.retireInfo.displayAge}}退休对应）\n
+        • 灵活就业人员：月缴费×8%计入个人账户\n
+        • 账户年利率：1.5%
+      </view>
+    </view>
+
+    <view class="formula-section">
+      <view class="formula-title">3️⃣ 灵活就业人员缴费标准</view>
+      <view class="formula-box highlight">
+        个人总缴费 = 缴费基数 × 20%\n
+        ├─ 8% 计入个人账户\n
+        └─ 12% 进入统筹账户
+      </view>
+    </view>
+  </view>
+
+  <!-- 操作按钮 -->
+  <view class="action-buttons">
+    <button class="btn btn-secondary" bindtap="goBack">重新计算</button>
+    <button class="btn btn-primary" bindtap="shareResult">分享结果</button>
+  </view>
+
+  <!-- 底部提示 -->
+  <view class="footer">
+    <view>数据来源：北京市人力资源和社会保障局 2025年公布数据</view>
+    <view style="margin-top: 10rpx; color: #f59e0b;">⚠️ 本计算结果仅供参考，实际养老金以社保部门核定为准</view>
+  </view>
+</view>

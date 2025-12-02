@@ -1,0 +1,120 @@
+<!--pages/index/index.wxml-->
+<view class="container">
+  <!-- 标题卡片 -->
+  <view class="card header-card">
+    <view class="header-title">养老金缴费基数计算器</view>
+    <view class="header-subtitle">灵活就业人员养老保险缴费方案智能对比分析系统</view>
+    <view class="header-note">适用对象：失业后继续缴纳职工养老保险的灵活就业人员</view>
+  </view>
+
+  <!-- 基本信息表单 -->
+  <view class="card">
+    <view class="card-title">基本信息</view>
+
+    <!-- 城市选择 -->
+    <view class="form-group">
+      <view class="form-label">选择城市</view>
+      <picker mode="selector" range="{{cities}}" value="{{cityIndex}}" bindchange="onCityChange">
+        <view class="form-picker">{{cities[cityIndex]}}</view>
+      </picker>
+      <view class="form-hint">更多城市即将上线</view>
+    </view>
+
+    <!-- 人员类型 -->
+    <view class="form-group">
+      <view class="form-label">人员类型</view>
+      <picker mode="selector" range="{{personTypes}}" range-key="label" value="{{personTypeIndex}}" bindchange="onPersonTypeChange">
+        <view class="form-picker">{{personTypes[personTypeIndex].label}}</view>
+      </picker>
+    </view>
+
+    <!-- 出生年份 -->
+    <view class="form-group">
+      <view class="form-label">出生年份</view>
+      <picker mode="date" fields="year" start="1960" end="2010" value="{{birthYear}}" bindchange="onBirthYearChange">
+        <view class="form-picker">{{birthYear || '请选择'}}</view>
+      </picker>
+    </view>
+
+    <!-- 出生月份 -->
+    <view class="form-group">
+      <view class="form-label">出生月份</view>
+      <picker mode="selector" range="{{months}}" value="{{birthMonthIndex}}" bindchange="onBirthMonthChange">
+        <view class="form-picker">{{months[birthMonthIndex]}}月</view>
+      </picker>
+    </view>
+
+    <!-- 查询退休年龄按钮 -->
+    <button class="btn btn-secondary" bindtap="checkRetirement">查询退休年龄</button>
+
+    <!-- 退休结果显示 -->
+    <view wx:if="{{retirementInfo}}" class="result-box">
+      <view class="result-title">预估退休年龄</view>
+      <view class="result-content">
+        <view wx:if="{{retirementInfo.status === 'retired'}}" class="info-item">
+          <view class="info-label">退休状态</view>
+          <view class="info-value" style="color: #f59e0b;">{{retirementInfo.displayAge}}</view>
+        </view>
+        <view wx:else>
+          <view class="info-item">
+            <view class="info-label">法定退休年龄</view>
+            <view class="info-value">{{retirementInfo.displayAge}}</view>
+          </view>
+          <view class="info-item">
+            <view class="info-label">预计退休时间</view>
+            <view class="info-value">{{retirementInfo.retireYear}}年{{retirementInfo.retireMonth}}月</view>
+          </view>
+        </view>
+      </view>
+    </view>
+  </view>
+
+  <!-- 历史缴费信息 -->
+  <view class="card">
+    <view class="card-title">历史缴费信息</view>
+
+    <!-- 缴费说明 -->
+    <view class="tip-box">
+      <view class="tip-title">💡 缴费说明</view>
+      <view class="tip-content">
+        <text style="font-weight: bold;">灵活就业人员缴费标准：</text>\n
+        • 个人承担全部费用，缴费比例为 <text style="font-weight: bold;">20%</text>\n
+        • 其中 <text style="font-weight: bold;">8%</text> 计入个人账户\n
+        • 其余 <text style="font-weight: bold;">12%</text> 进入统筹账户\n
+        • 本系统自动按此标准计算
+      </view>
+    </view>
+
+    <!-- 已累计缴费月数 -->
+    <view class="form-group">
+      <view class="form-label">已累计缴费月数</view>
+      <input class="form-input" type="digit" placeholder="请输入" value="{{histPaidMonths}}" bindinput="onHistPaidMonthsInput" />
+      <view class="form-hint">含视同缴费年限，按月计算</view>
+    </view>
+
+    <!-- 历史平均缴费指数 -->
+    <view class="form-group">
+      <view class="form-label">历史平均缴费指数</view>
+      <input class="form-input" type="digit" placeholder="请输入" value="{{histAvgIndex}}" bindinput="onHistAvgIndexInput" />
+      <view class="form-hint">通常在0.6-3.0之间，不清楚填1.0</view>
+    </view>
+
+    <!-- 个人账户余额 -->
+    <view class="form-group">
+      <view class="form-label">个人账户余额（元）</view>
+      <input class="form-input" type="digit" placeholder="请输入" value="{{histPersonalAccount}}" bindinput="onHistPersonalAccountInput" />
+      <view class="form-hint">当前个人账户累积金额</view>
+    </view>
+
+    <!-- 计算按钮 -->
+    <button class="btn btn-primary" bindtap="calculatePension">计算养老金方案</button>
+    <button class="btn btn-secondary" style="margin-top: 20rpx;" bindtap="resetForm">重置</button>
+  </view>
+
+  <!-- 版权信息 -->
+  <view class="footer">
+    <view>数据来源：北京市人力资源和社会保障局 2025年公布数据</view>
+    <view style="margin-top: 10rpx; color: #f59e0b;">⚠️ 本计算结果仅供参考，实际养老金以社保部门核定为准</view>
+    <view style="margin-top: 10rpx; font-size: 24rpx;">适用人群：灵活就业人员（个人缴费20%）</view>
+  </view>
+</view>
