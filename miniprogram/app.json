@@ -11,20 +11,6 @@
     "backgroundTextStyle": "light",
     "enablePullDownRefresh": false
   },
-  "tabBar": {
-    "color": "#7A7E83",
-    "selectedColor": "#667eea",
-    "backgroundColor": "#ffffff",
-    "borderStyle": "white",
-    "list": [
-      {
-        "pagePath": "pages/index/index",
-        "text": "计算器",
-        "iconPath": "images/calc.png",
-        "selectedIconPath": "images/calc-active.png"
-      }
-    ]
-  },
   "style": "v2",
   "sitemapLocation": "sitemap.json",
   "lazyCodeLoading": "requiredComponents"
