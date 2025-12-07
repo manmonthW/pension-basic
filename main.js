@@ -1,4 +1,5 @@
 // 显示缴费指数帮助信息
+console.log('main.js 已加载');
 function showIndexHelp() {
   const message = `缴费指数 = 您当年缴费工资 ÷ 当年社平工资
 
@@ -165,13 +166,17 @@ document.addEventListener('DOMContentLoaded', function () {
 
   // 查询退休年龄
   checkRetirementBtn.addEventListener('click', function () {
+    console.log('查询退休年龄按钮被点击');
     const basicInfo = validateBasicInfo();
+    console.log('基本信息验证结果:', basicInfo);
     if (!basicInfo) return;
 
     const { personType, birthYear, birthMonth } = basicInfo;
+    console.log('准备计算退休年龄:', { personType, birthYear, birthMonth });
 
     try {
       const result = getRetirementAge(birthYear, birthMonth, personType);
+      console.log('退休年龄计算结果:', result);
 
       let html = '';
       if (result.status === 'retired') {
