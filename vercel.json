@@ -1,8 +1,13 @@
 {
   "version": 2,
   "name": "pension-basic",
-  "buildCommand": "",
-  "outputDirectory": ".",
+  "framework": null,
+  "builds": [
+    {
+      "src": "**/*",
+      "use": "@vercel/static"
+    }
+  ],
   "cleanUrls": true,
   "trailingSlash": false,
   "headers": [
