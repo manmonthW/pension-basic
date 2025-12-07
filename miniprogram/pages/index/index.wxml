@@ -2,9 +2,13 @@
 <view class="container">
   <!-- 标题卡片 -->
   <view class="card header-card">
+    <view class="header-icon">💰</view>
     <view class="header-title">养老金缴费基数计算器</view>
     <view class="header-subtitle">灵活就业人员养老保险缴费方案智能对比分析系统</view>
-    <view class="header-note">适用对象：失业后继续缴纳职工养老保险的灵活就业人员</view>
+    <view class="header-note">
+      <text class="note-icon">👤</text>
+      <text>适用对象：失业后继续缴纳职工养老保险的灵活就业人员</text>
+    </view>
   </view>
 
   <!-- 基本信息表单 -->
@@ -45,7 +49,9 @@
     </view>
 
     <!-- 查询退休年龄按钮 -->
-    <button class="btn btn-secondary" bindtap="checkRetirement">查询退休年龄</button>
+    <view class="button-container">
+      <button class="btn btn-secondary" bindtap="checkRetirement">查询退休年龄</button>
+    </view>
 
     <!-- 退休结果显示 -->
     <view wx:if="{{retirementInfo}}" class="result-box">
@@ -94,9 +100,17 @@
 
     <!-- 历史平均缴费指数 -->
     <view class="form-group">
-      <view class="form-label">历史平均缴费指数</view>
+      <view class="form-label-with-help">
+        <text class="form-label">历史平均缴费指数</text>
+        <view class="help-icon" bindtap="showIndexHelp">?</view>
+      </view>
       <input class="form-input" type="digit" placeholder="请输入" value="{{histAvgIndex}}" bindinput="onHistAvgIndexInput" />
-      <view class="form-hint">通常在0.6-3.0之间，不清楚填1.0</view>
+      <view class="form-hint compact">
+        <text class="hint-main">通常在0.6-3.0之间，不清楚填1.0</text>
+        <text class="hint-note">• 缴费指数 = 您的缴费工资 ÷ 当年社平工资</text>
+        <text class="hint-note">• 若历年基数不同需计算加权平均值</text>
+        <text class="hint-note">• 经验值参考：0.6-0.7(最低基数) / 0.8-1.1(普通工资) / 1.2-1.8(中高收入) / 2.0-3.0(封顶缴费)</text>
+      </view>
     </view>
 
     <!-- 个人账户余额 -->
@@ -106,9 +120,24 @@
       <view class="form-hint">当前个人账户累积金额</view>
     </view>
 
+    <!-- 方案说明 -->
+    <view class="tip-box" style="margin-top: 30rpx; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white;">
+      <view class="tip-title" style="color: white;">📊 四档缴费方案对比</view>
+      <view class="tip-content" style="color: rgba(255,255,255,0.95);">
+        系统将自动计算以下四档缴费方案供您对比：\n
+        • <text style="font-weight: bold;">基础档(60%)</text> - 最低缴费标准\n
+        • <text style="font-weight: bold;">标准档(100%)</text> - 按社平工资缴费\n
+        • <text style="font-weight: bold;">进阶档(200%)</text> - 两倍社平工资\n
+        • <text style="font-weight: bold;">尊享档(300%)</text> - 最高缴费标准\n\n
+        点击下方按钮，一键获取完整对比分析！
+      </view>
+    </view>
+
     <!-- 计算按钮 -->
-    <button class="btn btn-primary" bindtap="calculatePension">计算养老金方案</button>
-    <button class="btn btn-secondary" style="margin-top: 20rpx;" bindtap="resetForm">重置</button>
+    <view class="button-container">
+      <button class="btn btn-primary" bindtap="calculatePension">计算养老金方案</button>
+      <button class="btn btn-secondary" style="margin-top: 20rpx;" bindtap="resetForm">重置</button>
+    </view>
   </view>
 
   <!-- 版权信息 -->

@@ -93,6 +93,17 @@ Page({
     });
   },
 
+  // 显示缴费指数帮助信息
+  showIndexHelp() {
+    wx.showModal({
+      title: '历史平均缴费指数说明',
+      content: '缴费指数 = 您当年缴费工资 ÷ 当年社平工资\n\n大多数人可以按以下经验估算：\n\n• 最低基数缴费（灵活就业常见）\n  → 0.6–0.7\n\n• 普通就业、工资接近社平\n  → 0.8–1.1\n\n• 中高收入、工资明显高于社平\n  → 1.2–1.8\n\n• 高收入长期封顶缴费\n  → 2.0–3.0\n\n只要大致接近即可，对测算影响有限。',
+      showCancel: false,
+      confirmText: '知道了',
+      confirmColor: '#667eea'
+    });
+  },
+
   // 查询退休年龄
   checkRetirement() {
     const { birthYear, birthMonthIndex, personTypes, personTypeIndex } = this.data;
@@ -164,7 +175,8 @@ Page({
       histPaidMonths: parseInt(histPaidMonths),
       histAvgIndex: parseFloat(histAvgIndex),
       histPersonalAccount: parseFloat(histPersonalAccount),
-      avgSalary: config.avgSalary,
+      lastYearAvgWage: config.avgSalary,
+      basicAccrualRate: 0.01,
       personalRate: config.flexibleEmploymentRate,
       employerRate: 0,
       personalToAccountRate: config.personalAccountRate,

@@ -115,10 +115,10 @@ function calculateSinglePlan(
  */
 function simulatePensionPlans(input) {
   // Step 1: 计算法定退休时间 & 剩余缴费月数
-  const { retireYear, retireMonth } = input.getStatutoryRetirementAge(
+  const { retireYear, retireMonth } = getStatutoryRetirementAge(
     input.birthYear,
     input.birthMonth,
-    input.gender,
+    input.gender || 'male',
     input.personType
   );
 
@@ -136,7 +136,12 @@ function simulatePensionPlans(input) {
   // Step 2: 计算退休年龄和计发月数N
   const retireAgeYears =
     retireYear - input.birthYear + (retireMonth - input.birthMonth) / 12;
-  const N = input.getNFromTable(Math.round(retireAgeYears));
+  const N = getNFromTable(Math.round(retireAgeYears));
+
+  // 格式化退休年龄显示
+  const ageYears = Math.floor(retireAgeYears);
+  const ageMonths = Math.round((retireAgeYears - ageYears) * 12);
+  const displayAge = ageMonths === 0 ? `${ageYears}岁` : `${ageYears}岁${ageMonths}个月`;
 
   // Step 3: 计算每个方案
   const plans = [];
@@ -197,6 +202,7 @@ function simulatePensionPlans(input) {
       retireYear,
       retireMonth,
       retireAgeYears,
+      displayAge,
       N,
       monthsToRetire: M,
     },

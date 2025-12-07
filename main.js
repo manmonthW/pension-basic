@@ -1,3 +1,47 @@
+// 显示缴费指数帮助信息
+function showIndexHelp() {
+  const message = `缴费指数 = 您当年缴费工资 ÷ 当年社平工资
+
+大多数人可以按以下经验估算：
+
+• 最低基数缴费（灵活就业常见）
+  → 0.6–0.7
+
+• 普通就业、工资接近社平
+  → 0.8–1.1
+
+• 中高收入、工资明显高于社平
+  → 1.2–1.8
+
+• 高收入长期封顶缴费
+  → 2.0–3.0
+
+只要大致接近即可，对测算影响有限。`;
+
+  // 创建自定义模态框
+  const modal = document.createElement('div');
+  modal.className = 'custom-modal';
+  modal.innerHTML = `
+    <div class="modal-overlay" onclick="this.parentElement.remove()"></div>
+    <div class="modal-content">
+      <div class="modal-header">
+        <h3>历史平均缴费指数说明</h3>
+        <button class="modal-close" onclick="this.closest('.custom-modal').remove()">×</button>
+      </div>
+      <div class="modal-body">
+        <p style="white-space: pre-line;">${message}</p>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-primary" onclick="this.closest('.custom-modal').remove()">知道了</button>
+      </div>
+    </div>
+  `;
+  document.body.appendChild(modal);
+
+  // 添加淡入动画
+  setTimeout(() => modal.classList.add('show'), 10);
+}
+
 // 主交互逻辑
 
 document.addEventListener('DOMContentLoaded', function () {
@@ -7,16 +51,124 @@ document.addEventListener('DOMContentLoaded', function () {
   const retirementInfo = document.getElementById('retirementInfo');
   const resultsSection = document.getElementById('resultsSection');
 
-  // 查询退休年龄
-  checkRetirementBtn.addEventListener('click', function () {
+  // 显示错误提示模态框
+  function showErrorModal(title, message) {
+    const modal = document.createElement('div');
+    modal.className = 'custom-modal';
+    modal.innerHTML = `
+      <div class="modal-overlay" onclick="this.parentElement.remove()"></div>
+      <div class="modal-content">
+        <div class="modal-header" style="background: linear-gradient(135deg, #ef4444, #f87171);">
+          <h3 style="color: white;">⚠️ ${title}</h3>
+          <button class="modal-close" onclick="this.closest('.custom-modal').remove()" style="color: white;">×</button>
+        </div>
+        <div class="modal-body">
+          <p style="color: #374151; font-size: 1.05em; line-height: 1.6; white-space: pre-line;">${message}</p>
+        </div>
+        <div class="modal-footer">
+          <button class="btn btn-primary" onclick="this.closest('.custom-modal').remove()">知道了</button>
+        </div>
+      </div>
+    `;
+    document.body.appendChild(modal);
+    setTimeout(() => modal.classList.add('show'), 10);
+  }
+
+  // 验证基本信息
+  function validateBasicInfo() {
     const personType = document.getElementById('personType').value;
     const birthYear = parseInt(document.getElementById('birthYear').value);
     const birthMonth = parseInt(document.getElementById('birthMonth').value);
+    const currentYear = new Date().getFullYear();
 
-    if (!personType || !birthYear || !birthMonth) {
-      alert('请先填写人员类型、出生年份和出生月份');
-      return;
+    if (!personType) {
+      showErrorModal('输入错误', '请选择人员类型');
+      return null;
     }
+
+    if (!birthYear || isNaN(birthYear)) {
+      showErrorModal('输入错误', '请填写出生年份');
+      return null;
+    }
+
+    if (birthYear < 1940) {
+      showErrorModal('输入错误', '出生年份不能早于1940年');
+      return null;
+    }
+
+    if (birthYear > currentYear - 16) {
+      showErrorModal('输入错误', `出生年份不能晚于${currentYear - 16}年（需满16周岁）`);
+      return null;
+    }
+
+    if (!birthMonth || isNaN(birthMonth)) {
+      showErrorModal('输入错误', '请选择出生月份');
+      return null;
+    }
+
+    return { personType, birthYear, birthMonth };
+  }
+
+  // 验证历史缴费信息
+  function validateHistoryInfo() {
+    const histPaidMonths = parseInt(document.getElementById('histPaidMonths').value);
+    const histAvgIndex = parseFloat(document.getElementById('histAvgIndex').value);
+    const histPersonalAccount = parseFloat(document.getElementById('histPersonalAccount').value);
+
+    if (isNaN(histPaidMonths)) {
+      showErrorModal('输入错误', '请填写已累计缴费月数');
+      return null;
+    }
+
+    if (histPaidMonths < 0) {
+      showErrorModal('输入错误', '缴费月数不能为负数');
+      return null;
+    }
+
+    if (histPaidMonths > 600) {
+      showErrorModal('输入错误', '缴费月数不能超过600个月（50年）');
+      return null;
+    }
+
+    if (isNaN(histAvgIndex)) {
+      showErrorModal('输入错误', '请填写历史平均缴费指数');
+      return null;
+    }
+
+    if (histAvgIndex < 0.4) {
+      showErrorModal('输入错误', '缴费指数过低（最低为0.6）\n\n提示：缴费指数 = 您的缴费工资 ÷ 当年社平工资');
+      return null;
+    }
+
+    if (histAvgIndex > 3.5) {
+      showErrorModal('输入错误', '缴费指数过高（最高为3.0）\n\n提示：缴费指数 = 您的缴费工资 ÷ 当年社平工资');
+      return null;
+    }
+
+    if (isNaN(histPersonalAccount)) {
+      showErrorModal('输入错误', '请填写个人账户余额');
+      return null;
+    }
+
+    if (histPersonalAccount < 0) {
+      showErrorModal('输入错误', '个人账户余额不能为负数');
+      return null;
+    }
+
+    if (histPersonalAccount > 10000000) {
+      showErrorModal('输入错误', '个人账户余额请检查是否正确（超出合理范围）');
+      return null;
+    }
+
+    return { histPaidMonths, histAvgIndex, histPersonalAccount };
+  }
+
+  // 查询退休年龄
+  checkRetirementBtn.addEventListener('click', function () {
+    const basicInfo = validateBasicInfo();
+    if (!basicInfo) return;
+
+    const { personType, birthYear, birthMonth } = basicInfo;
 
     try {
       const result = getRetirementAge(birthYear, birthMonth, personType);
@@ -46,7 +198,7 @@ document.addEventListener('DOMContentLoaded', function () {
       retirementResult.style.display = 'block';
       retirementResult.classList.add('fade-in');
     } catch (error) {
-      alert('查询失败：' + error.message);
+      showErrorModal('查询失败', error.message);
     }
   });
 
@@ -54,20 +206,18 @@ document.addEventListener('DOMContentLoaded', function () {
   form.addEventListener('submit', function (e) {
     e.preventDefault();
 
+    // 验证基本信息
+    const basicInfo = validateBasicInfo();
+    if (!basicInfo) return;
+
+    // 验证历史缴费信息
+    const historyInfo = validateHistoryInfo();
+    if (!historyInfo) return;
+
     // 获取表单数据
     const cityName = document.getElementById('citySelect').value;
-    const personType = document.getElementById('personType').value;
-    const birthYear = parseInt(document.getElementById('birthYear').value);
-    const birthMonth = parseInt(document.getElementById('birthMonth').value);
-    const histPaidMonths = parseInt(
-      document.getElementById('histPaidMonths').value
-    );
-    const histAvgIndex = parseFloat(
-      document.getElementById('histAvgIndex').value
-    );
-    const histPersonalAccount = parseFloat(
-      document.getElementById('histPersonalAccount').value
-    );
+    const { personType, birthYear, birthMonth } = basicInfo;
+    const { histPaidMonths, histAvgIndex, histPersonalAccount } = historyInfo;
 
     // 获取当前日期
     const now = new Date();
@@ -115,7 +265,7 @@ document.addEventListener('DOMContentLoaded', function () {
       // 滚动到结果区域
       resultsSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
     } catch (error) {
-      alert('计算失败：' + error.message);
+      showErrorModal('计算失败', error.message);
       console.error(error);
     }
   });
@@ -199,9 +349,8 @@ function displayResults(result) {
             <span class="label">└ 个人账户养老金</span>
             <span class="value">${formatMoney(plan.accountPensionPart)}元</span>
           </div>
-          ${
-            plan.planId > 1
-              ? `
+          ${plan.planId > 1
+        ? `
           <div class="plan-detail-item" style="margin-top: 8px; background-color: #f0f9ff; padding: 8px; border-radius: 4px;">
             <span class="label">相比低档多缴</span>
             <span class="value negative">${formatMoney(plan.deltaPersonalPayVsPlan1)}元</span>
@@ -215,8 +364,8 @@ function displayResults(result) {
             <span class="value">${plan.paybackMonthsVsPlan1 === Infinity ? '无法回本' : formatMonths(Math.ceil(plan.paybackMonthsVsPlan1))}</span>
           </div>
           `
-              : ''
-          }
+        : ''
+      }
         </div>
       </div>
     `;
@@ -237,11 +386,10 @@ function displayResults(result) {
       <h3>回本最快方案</h3>
       <div class="rec-value">${planNames[bestPaybackPlan.planId - 1]}</div>
       <p>月养老金: <strong>${formatMoney(bestPaybackPlan.monthlyPension)}元</strong></p>
-      ${
-        bestPaybackPlan.planId > 1
-          ? `<p>回本时间: <strong>${formatMonths(Math.ceil(bestPaybackPlan.paybackMonthsVsPlan1))}</strong></p>`
-          : '<p>基准方案</p>'
-      }
+      ${bestPaybackPlan.planId > 1
+      ? `<p>回本时间: <strong>${formatMonths(Math.ceil(bestPaybackPlan.paybackMonthsVsPlan1))}</strong></p>`
+      : '<p>基准方案</p>'
+    }
     </div>
     <div class="recommendation-card fade-in" style="animation-delay: 0.2s;">
       <h3>养老金最高方案</h3>
@@ -484,9 +632,40 @@ function displayFormula(result) {
               <ul>
                 <li>全市上年平均工资 = <strong>12,049元</strong>（北京2025年标准）</li>
                 <li>本人指数化工资 = <strong>平均缴费指数 × 社平工资</strong></li>
-                <li>平均缴费指数 = 历史缴费基数与社平工资的比值平均</li>
                 <li>缴费年限 = 您的累计缴费月数 ÷ 12</li>
               </ul>
+            </div>
+            <div class="index-explanation-compact" style="margin-top: 16px;">
+              <div class="note-label" style="font-weight: bold; color: #92400e; margin-bottom: 12px;">📊 历史平均缴费指数计算方法</div>
+              <div class="explanation-row">
+                <span class="explanation-label">基本公式</span>
+                <span class="explanation-value">缴费指数 = 您的缴费工资 ÷ 当年社平工资</span>
+              </div>
+              <div class="explanation-row">
+                <span class="explanation-label">历年不同</span>
+                <span class="explanation-value">平均指数 = Σ(每年指数×缴费月数) ÷ 总月数</span>
+              </div>
+              <div class="explanation-divider"></div>
+              <div class="explanation-tag">💡 经验值参考</div>
+              <div class="explanation-grid">
+                <div class="explanation-item">
+                  <div class="item-range">0.6-0.7</div>
+                  <div class="item-desc">最低基数</div>
+                </div>
+                <div class="explanation-item">
+                  <div class="item-range">0.8-1.1</div>
+                  <div class="item-desc">普通工资</div>
+                </div>
+                <div class="explanation-item">
+                  <div class="item-range">1.2-1.8</div>
+                  <div class="item-desc">中高收入</div>
+                </div>
+                <div class="explanation-item">
+                  <div class="item-range">2.0-3.0</div>
+                  <div class="item-desc">封顶缴费</div>
+                </div>
+              </div>
+              <div class="explanation-footer">⚠️ 大致接近即可，对测算影响有限</div>
             </div>
           </div>
         </div>

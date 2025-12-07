@@ -7,30 +7,53 @@
   gap: 24rpx;
 }
 
-/* 单个方案卡片 */
+/* 单个方案卡片 - iOS玻璃态效果 */
 .plan-card {
-  background: linear-gradient(135deg, #f7fafc 0%, #edf2f7 100%);
-  border-radius: 20rpx;
-  padding: 32rpx;
-  border: 3rpx solid #e2e8f0;
-  transition: all 0.3s;
+  background: rgba(255, 255, 255, 0.85);
+  backdrop-filter: blur(20px) saturate(180%);
+  -webkit-backdrop-filter: blur(20px) saturate(180%);
+  border-radius: 24rpx;
+  padding: 36rpx;
+  border: 3rpx solid rgba(255, 255, 255, 0.3);
+  box-shadow: 0 16rpx 48rpx rgba(0, 0, 0, 0.1),
+              0 0 0 1rpx rgba(255, 255, 255, 0.1) inset;
+  transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+  position: relative;
+  overflow: hidden;
 }
 
-.plan-card.plan-1 {
-  border-color: #3b82f6;
+.plan-card::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 6rpx;
+  border-radius: 24rpx 24rpx 0 0;
+}
+
+.plan-card.plan-1::before {
+  background: linear-gradient(90deg, #3b82f6, #60a5fa);
 }
 
 .plan-card.plan-2 {
-  border-color: #10b981;
-  background: linear-gradient(135deg, #ecfdf5 0%, #d1fae5 100%);
+  background: rgba(236, 253, 245, 0.9);
 }
 
-.plan-card.plan-3 {
-  border-color: #f59e0b;
+.plan-card.plan-2::before {
+  background: linear-gradient(90deg, #10b981, #34d399);
 }
 
-.plan-card.plan-4 {
-  border-color: #8b5cf6;
+.plan-card.plan-3::before {
+  background: linear-gradient(90deg, #f59e0b, #fbbf24);
+}
+
+.plan-card.plan-4::before {
+  background: linear-gradient(90deg, #8b5cf6, #a78bfa);
+}
+
+.plan-card:active {
+  transform: scale(0.98);
 }
 
 /* 方案头部 */
@@ -134,7 +157,7 @@
   color: #ef4444;
 }
 
-/* 推荐卡片 */
+/* 推荐卡片 - iOS玻璃态 */
 .recommendations {
   display: grid;
   grid-template-columns: 1fr 1fr;
@@ -142,11 +165,33 @@
 }
 
 .rec-card {
-  background: linear-gradient(135deg, #f7fafc 0%, #edf2f7 100%);
-  border-radius: 16rpx;
-  padding: 32rpx 24rpx;
+  background: rgba(255, 255, 255, 0.85);
+  backdrop-filter: blur(20px) saturate(180%);
+  -webkit-backdrop-filter: blur(20px) saturate(180%);
+  border-radius: 20rpx;
+  padding: 36rpx 28rpx;
   text-align: center;
-  border: 2rpx solid #e2e8f0;
+  border: 3rpx solid rgba(102, 126, 234, 0.2);
+  box-shadow: 0 12rpx 32rpx rgba(102, 126, 234, 0.15);
+  position: relative;
+  overflow: hidden;
+  transition: all 0.3s ease;
+}
+
+.rec-card::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 4rpx;
+  background: linear-gradient(90deg, #667eea, #764ba2);
+  border-radius: 20rpx 20rpx 0 0;
+}
+
+.rec-card:active {
+  transform: translateY(-4rpx);
+  box-shadow: 0 16rpx 40rpx rgba(102, 126, 234, 0.2);
 }
 
 .rec-icon {
@@ -172,50 +217,158 @@
   color: #a0aec0;
 }
 
-/* 公式部分 */
+/* 公式部分 - iOS玻璃态 */
 .formula-section {
-  margin-bottom: 32rpx;
+  margin-bottom: 40rpx;
 }
 
 .formula-title {
-  font-size: 28rpx;
+  font-size: 30rpx;
   font-weight: bold;
-  color: #2d3748;
-  margin-bottom: 16rpx;
+  background: linear-gradient(135deg, #667eea, #764ba2);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  margin-bottom: 20rpx;
+  letter-spacing: 2rpx;
 }
 
 .formula-box {
-  background: #f7fafc;
+  background: rgba(247, 250, 252, 0.9);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
   border-left: 6rpx solid #667eea;
-  padding: 24rpx;
-  border-radius: 12rpx;
+  padding: 28rpx;
+  border-radius: 16rpx;
   font-size: 26rpx;
   color: #4a5568;
-  line-height: 1.8;
+  line-height: 2;
   white-space: pre-line;
+  box-shadow: 0 4rpx 12rpx rgba(0, 0, 0, 0.05);
 }
 
 .formula-box.highlight {
-  background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%);
+  background: rgba(254, 243, 199, 0.95);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
   border-left-color: #f59e0b;
   color: #78350f;
+  font-weight: bold;
+  text-align: center;
 }
 
 .formula-notes {
   margin-top: 16rpx;
-  font-size: 24rpx;
-  color: #718096;
-  line-height: 1.8;
+  font-size: 26rpx;
+  color: #4a5568;
+  line-height: 2;
   padding-left: 24rpx;
   white-space: pre-line;
 }
 
-/* 操作按钮 */
-.action-buttons {
+/* 紧凑型指数解释卡片 - iOS玻璃态 */
+.index-explanation-compact {
+  background: rgba(254, 243, 199, 0.5);
+  backdrop-filter: blur(20px) saturate(180%);
+  -webkit-backdrop-filter: blur(20px) saturate(180%);
+  border: 2rpx solid rgba(251, 191, 36, 0.3);
+  border-radius: 20rpx;
+  padding: 28rpx;
+  margin-top: 16rpx;
+  box-shadow: 0 8rpx 24rpx rgba(251, 191, 36, 0.15);
+}
+
+.explanation-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 16rpx;
+  margin-bottom: 16rpx;
+}
+
+.explanation-row.compact {
+  margin-bottom: 12rpx;
+}
+
+.explanation-label {
+  font-size: 22rpx;
+  color: #78350f;
+  font-weight: 600;
+  min-width: 120rpx;
+  flex-shrink: 0;
+}
+
+.explanation-value {
+  font-size: 22rpx;
+  color: #92400e;
+  font-weight: 500;
+  line-height: 1.6;
+}
+
+.explanation-tag {
+  font-size: 24rpx;
+  color: #92400e;
+  font-weight: bold;
+}
+
+.explanation-divider {
+  height: 1rpx;
+  background: rgba(251, 191, 36, 0.3);
+  margin: 12rpx 0 16rpx 0;
+}
+
+.explanation-grid {
   display: grid;
   grid-template-columns: 1fr 1fr;
-  gap: 20rpx;
+  gap: 12rpx;
+  margin-bottom: 16rpx;
+}
+
+.explanation-item {
+  background: rgba(255, 255, 255, 0.6);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  border-radius: 12rpx;
+  padding: 12rpx 16rpx;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4rpx;
+  border: 1rpx solid rgba(251, 191, 36, 0.2);
+}
+
+.item-range {
+  font-size: 22rpx;
+  font-weight: bold;
+  color: #92400e;
+}
+
+.item-desc {
+  font-size: 20rpx;
+  color: #78350f;
+}
+
+.explanation-footer {
+  text-align: center;
+  font-size: 20rpx;
+  color: #92400e;
+  margin-top: 8rpx;
+  padding-top: 12rpx;
+  border-top: 1rpx solid rgba(251, 191, 36, 0.2);
+}
+
+/* 操作按钮 - 居中对齐 */
+.action-buttons {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 24rpx;
   margin: 40rpx 0;
+  padding: 0 20rpx;
+}
+
+.action-buttons .btn {
+  flex: 1;
+  max-width: 320rpx;
 }
 
 /* 底部 */

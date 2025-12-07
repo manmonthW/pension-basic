@@ -47,8 +47,8 @@
     "disableSWC": true
   },
   "compileType": "miniprogram",
-  "libVersion": "3.5.5",
-  "appid": "wx2cc64f50a506e1a7",
+  "libVersion": "3.12.0",
+  "appid": "wx529ea231af91a9a2",
   "projectname": "pension-basic",
   "condition": {},
   "editorSetting": {

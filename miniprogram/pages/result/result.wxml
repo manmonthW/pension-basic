@@ -1,4 +1,6 @@
 <!--pages/result/result.wxml-->
+<wxs module="format" src="../../utils/format.wxs"></wxs>
+
 <view class="container">
   <!-- 退休信息 -->
   <view class="card">
@@ -14,7 +16,7 @@
       </view>
       <view class="info-item">
         <view class="info-label">剩余缴费</view>
-        <view class="info-value">{{formatMonths(result.retireInfo.monthsToRetire)}}</view>
+        <view class="info-value">{{format.formatMonths(result.retireInfo.monthsToRetire)}}</view>
       </view>
       <view class="info-item">
         <view class="info-label">计发月数(N)</view>
@@ -35,7 +37,7 @@
 
         <view class="plan-main">
           <view class="plan-pension">
-            <text class="pension-amount">{{formatMoney(item.monthlyPension)}}</text>
+            <text class="pension-amount">{{format.formatMoney(item.monthlyPension)}}</text>
             <text class="pension-unit">元/月</text>
           </view>
         </view>
@@ -43,43 +45,43 @@
         <view class="plan-details">
           <view class="detail-row">
             <text class="detail-label">缴费基数</text>
-            <text class="detail-value">{{formatMoney(item.monthlyBase)}}元</text>
+            <text class="detail-value">{{format.formatMoney(item.monthlyBase)}}元</text>
           </view>
           <view class="detail-row">
             <text class="detail-label">月缴费(20%)</text>
-            <text class="detail-value">{{formatMoney(item.personalPayPerMonth)}}元</text>
+            <text class="detail-value">{{format.formatMoney(item.personalPayPerMonth)}}元</text>
           </view>
           <view class="detail-row">
             <text class="detail-label">总缴费</text>
-            <text class="detail-value">{{formatMoney(item.totalPersonalPay)}}元</text>
+            <text class="detail-value">{{format.formatMoney(item.totalPersonalPay)}}元</text>
           </view>
           <view class="detail-row">
             <text class="detail-label">账户余额</text>
-            <text class="detail-value">{{formatMoney(item.finalPersonalAccount)}}元</text>
+            <text class="detail-value">{{format.formatMoney(item.finalPersonalAccount)}}元</text>
           </view>
           <view class="detail-divider"></view>
           <view class="detail-row highlight">
             <text class="detail-label">基础养老金</text>
-            <text class="detail-value">{{formatMoney(item.basicPensionPart)}}元</text>
+            <text class="detail-value">{{format.formatMoney(item.basicPensionPart)}}元</text>
           </view>
           <view class="detail-row highlight">
             <text class="detail-label">个人账户</text>
-            <text class="detail-value">{{formatMoney(item.accountPensionPart)}}元</text>
+            <text class="detail-value">{{format.formatMoney(item.accountPensionPart)}}元</text>
           </view>
 
           <view wx:if="{{item.planId > 1}}" class="compare-section">
             <view class="detail-divider"></view>
             <view class="detail-row compare">
               <text class="detail-label">比基础档多缴</text>
-              <text class="detail-value negative">+{{formatMoney(item.deltaPersonalPayVsPlan1)}}元</text>
+              <text class="detail-value negative">+{{format.formatMoney(item.deltaPersonalPayVsPlan1)}}元</text>
             </view>
             <view class="detail-row compare">
               <text class="detail-label">每月多领</text>
-              <text class="detail-value positive">+{{formatMoney(item.deltaMonthlyPensionVsPlan1)}}元</text>
+              <text class="detail-value positive">+{{format.formatMoney(item.deltaMonthlyPensionVsPlan1)}}元</text>
             </view>
             <view class="detail-row compare">
               <text class="detail-label">回本时间</text>
-              <text class="detail-value">{{formatMonths(Math.ceil(item.paybackMonthsVsPlan1))}}</text>
+              <text class="detail-value">{{format.formatMonths(item.paybackMonthsVsPlan1)}}</text>
             </view>
           </view>
         </view>
@@ -95,14 +97,14 @@
         <view class="rec-icon">⚡</view>
         <view class="rec-title">回本最快方案</view>
         <view class="rec-value">{{planNames[result.bestByPayback.planId - 1]}}</view>
-        <view class="rec-desc">月养老金: {{formatMoney(result.bestByPayback.monthlyPension)}}元</view>
+        <view class="rec-desc">月养老金: {{format.formatMoney(result.bestByPayback.monthlyPension)}}元</view>
       </view>
 
       <view class="rec-card">
         <view class="rec-icon">💰</view>
         <view class="rec-title">养老金最高方案</view>
         <view class="rec-value">{{planNames[result.bestByPension.planId - 1]}}</view>
-        <view class="rec-desc">月养老金: {{formatMoney(result.bestByPension.monthlyPension)}}元</view>
+        <view class="rec-desc">月养老金: {{format.formatMoney(result.bestByPension.monthlyPension)}}元</view>
       </view>
     </view>
   </view>
@@ -127,6 +129,45 @@
         • 社平工资 = 12,049元（北京2025年标准）\n
         • 本人指数化工资 = 平均缴费指数 × 社平工资\n
         • 缴费年限 = 累计缴费月数 ÷ 12
+      </view>
+
+      <view class="formula-box highlight" style="margin-top: 24rpx;">
+        📊 历史平均缴费指数计算方法
+      </view>
+      <view class="index-explanation-compact">
+        <view class="explanation-row">
+          <text class="explanation-label">基本公式</text>
+          <text class="explanation-value">缴费指数 = 您的缴费工资 ÷ 当年社平工资</text>
+        </view>
+        <view class="explanation-row">
+          <text class="explanation-label">历年不同</text>
+          <text class="explanation-value">平均指数 = Σ(每年指数×缴费月数) ÷ 总月数</text>
+        </view>
+        <view class="explanation-divider"></view>
+        <view class="explanation-row compact">
+          <text class="explanation-tag">💡 经验值参考</text>
+        </view>
+        <view class="explanation-grid">
+          <view class="explanation-item">
+            <text class="item-range">0.6-0.7</text>
+            <text class="item-desc">最低基数</text>
+          </view>
+          <view class="explanation-item">
+            <text class="item-range">0.8-1.1</text>
+            <text class="item-desc">普通工资</text>
+          </view>
+          <view class="explanation-item">
+            <text class="item-range">1.2-1.8</text>
+            <text class="item-desc">中高收入</text>
+          </view>
+          <view class="explanation-item">
+            <text class="item-range">2.0-3.0</text>
+            <text class="item-desc">封顶缴费</text>
+          </view>
+        </view>
+        <view class="explanation-footer">
+          <text>⚠️ 大致接近即可，对测算影响有限</text>
+        </view>
       </view>
     </view>
 

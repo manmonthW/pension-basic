@@ -1,0 +1,24 @@
+{
+    "name": "pension-basic",
+    "version": "1.0.0",
+    "description": "养老金缴费基数计算器 - 灵活就业人员养老保险缴费方案智能对比分析系统",
+    "type": "module",
+    "scripts": {
+        "dev": "vite",
+        "build": "vite build",
+        "preview": "vite preview",
+        "test": "node test.js"
+    },
+    "keywords": [
+        "pension",
+        "calculator",
+        "retirement",
+        "养老金",
+        "退休"
+    ],
+    "author": "",
+    "license": "MIT",
+    "devDependencies": {
+        "vite": "^5.4.0"
+    }
+}

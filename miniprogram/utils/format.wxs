@@ -1,0 +1,113 @@
+// 格式化工具函数 WXS 模块
+
+/**
+ * 格式化金额
+ * @param {number} money - 金额
+ * @returns {string} - 格式化后的金额字符串
+ */
+function formatMoney(money) {
+  if (money === undefined || money === null || money === '') {
+    return '0';
+  }
+
+  var num = parseFloat(money);
+  if (isNaN(num)) {
+    return '0';
+  }
+
+  // 保留两位小数
+  var rounded = Math.round(num * 100) / 100;
+
+  // 转换为字符串并添加千分位
+  var str = rounded.toFixed(2);
+  var parts = str.split('.');
+  var integerPart = parts[0];
+  var decimalPart = parts[1];
+
+  // 添加千分位分隔符（使用简单方法，不用高级正则）
+  var formattedInteger = '';
+  var len = integerPart.length;
+  for (var i = 0; i < len; i++) {
+    if (i > 0 && (len - i) % 3 === 0) {
+      formattedInteger += ',';
+    }
+    formattedInteger += integerPart.charAt(i);
+  }
+
+  // 如果小数部分为 .00，则去掉
+  if (decimalPart === '00') {
+    return formattedInteger;
+  }
+
+  return formattedInteger + '.' + decimalPart;
+}
+
+/**
+ * 格式化月数为年月
+ * @param {number} months - 月数
+ * @returns {string} - 格式化后的字符串
+ */
+function formatMonths(months) {
+  if (months === undefined || months === null || months === '') {
+    return '0个月';
+  }
+
+  var num = parseInt(months);
+  if (isNaN(num) || num === 0) {
+    return '0个月';
+  }
+
+  var years = Math.floor(num / 12);
+  var remainingMonths = num % 12;
+
+  if (years === 0) {
+    return remainingMonths + '个月';
+  } else if (remainingMonths === 0) {
+    return years + '年';
+  } else {
+    return years + '年' + remainingMonths + '个月';
+  }
+}
+
+/**
+ * 格式化年数
+ * @param {number} years - 年数
+ * @returns {string} - 格式化后的字符串
+ */
+function formatYears(years) {
+  if (years === undefined || years === null || years === '') {
+    return '0年';
+  }
+
+  var num = parseFloat(years);
+  if (isNaN(num)) {
+    return '0年';
+  }
+
+  return num.toFixed(1) + '岁';
+}
+
+/**
+ * 格式化百分比
+ * @param {number} ratio - 比例（0-1）
+ * @returns {string} - 格式化后的百分比
+ */
+function formatPercent(ratio) {
+  if (ratio === undefined || ratio === null || ratio === '') {
+    return '0%';
+  }
+
+  var num = parseFloat(ratio);
+  if (isNaN(num)) {
+    return '0%';
+  }
+
+  return (num * 100).toFixed(1) + '%';
+}
+
+module.exports = {
+  formatMoney: formatMoney,
+  formatMonths: formatMonths,
+  formatYears: formatYears,
+  formatPercent: formatPercent
+};
